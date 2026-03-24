@@ -10,8 +10,19 @@
 </head>
 
 <body>
+    <!-- Phase 0: Login -->
+    <div id="login-container" class="phase-container active">
+        <div class="card" style="display: flex; flex-direction: column; gap: 15px;">
+            <h2 style="font-size: 2rem; margin-bottom: 10px; color: #fff;">Login ❤️</h2>
+            <input type="text" id="username" placeholder="our name small" class="login-input" autocomplete="off">
+            <input type="password" id="password" placeholder="int birthday" class="login-input">
+            <button id="login-btn" class="ans-btn" style="margin-top: 10px;">Enter</button>
+            <p id="login-error" style="color: #ff0844; display: none; font-size: 0.9rem;">Incorrect username or password. Try again!</p>
+        </div>
+    </div>
+
     <!-- Phase 1: Catch the Orb -->
-    <div id="game-container" class="phase-container active">
+    <div id="game-container" class="phase-container hidden">
         <h1 id="title">Unlock the Mystery</h1>
         <p id="instruction">Catch and click the orb!</p>
 
@@ -41,8 +52,8 @@
 
     <!-- Phase 3: Heart Game -->
     <div id="heart-game-container" class="phase-container hidden">
-        <h2 class="heart-title">Catch 10 Skyblue Hearts! 🩵</h2>
-        <p style="color: #a0a0b5; margin-bottom: 20px;">Avoid the other colors!</p>
+        <h2 class="heart-title">Catch an Ice Cream! 🍦</h2>
+        <p style="color: #a0a0b5; margin-bottom: 20px;">Avoid chocolates 🍫 and cookies 🍪!</p>
         <div id="heart-progress-container">
             <div id="heart-progress-bar"></div>
         </div>
@@ -51,9 +62,16 @@
 
     <!-- Phase 4: Finale -->
     <div id="finale-container" class="phase-container hidden">
-        <h1 class="gradient-text finale-text">love mine<br>happy birthday</h1>
-        <p>You unlocked everything! 🎉</p>
-        <button id="reset-btn">Play Again</button>
+        <h1 class="gradient-text finale-text" id="final-main-text" style="font-size: 3rem; line-height: 1.3;">Many more happy returns of the day pondatti ❤️<br>Love u umma 😘</h1>
+        <p id="final-sub-text">You unlocked everything! 🎉</p>
+        <div id="secret-message" style="display: none; margin-bottom: 30px;">
+            <h2 style="color: #ffb199; font-size: 2.5rem; margin-bottom: 10px;">AM ALWAYS BE WITH U NEZ</h2>
+            <h2 style="color: #4facfe; font-size: 2.5rem;">LOVE U PATTU</h2>
+        </div>
+        <div style="display: flex; gap: 15px; justify-content: center; align-items: center; flex-wrap: wrap;">
+            <button id="extra-btn" class="ans-btn" style="padding: 15px 40px; background: transparent; border: 2px solid #ffb199; color: #ffb199; box-shadow: none;">Click for a Surprise!</button>
+            <button id="reset-btn">Play Again</button>
+        </div>
     </div>
 
     <canvas id="confetti"></canvas>

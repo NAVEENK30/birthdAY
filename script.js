@@ -1,9 +1,16 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- Container Elements ---
+    const loginContainer = document.getElementById('login-container');
     const gameContainer = document.getElementById('game-container');
     const questionContainer = document.getElementById('question-container');
     const heartGameContainer = document.getElementById('heart-game-container');
     const finaleContainer = document.getElementById('finale-container');
+
+    // --- Phase 0: Login Elements ---
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const loginBtn = document.getElementById('login-btn');
+    const loginError = document.getElementById('login-error');
 
     // --- Phase 1: Orb Game Elements ---
     const orbContainer = document.getElementById('orb-container');
@@ -21,6 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Phase 4: Finale Elements ---
     const resetBtn = document.getElementById('reset-btn');
+    const extraBtn = document.getElementById('extra-btn');
+    const secretMessage = document.getElementById('secret-message');
+    const finalMainText = document.getElementById('final-main-text');
+    const finalSubText = document.getElementById('final-sub-text');
 
     // --- State Variables ---
     let orbClicks = 0;
@@ -28,16 +39,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentQuestion = 0;
     const questions = [
-        "Do you love me? 🥺",
-        "Really really? 💕",
-        "Will you be my forever Valentine? 💘"
+        "Are you ready for your surprise? 👀",
+        "Are you sure? It's a big one! 🎁",
+        "Promise you won't get mad if it's too cheesy? 🧀"
     ];
 
     let heartsCaught = 0;
-    const maxHearts = 10;
+    const maxHearts = 1; // Catch an icecream
     let heartInterval;
 
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    // ==========================================
+    // PHASE 0: LOGIN LOGIC
+    // ==========================================
+    if (loginBtn) {
+        loginBtn.addEventListener('click', () => {
+            const user = usernameInput.value.trim().toLowerCase();
+            const pass = passwordInput.value.trim();
+
+            if (user === 'navinkaviya' && pass === '3018') {
+                loginError.style.display = 'none';
+                switchPhase(loginContainer, gameContainer);
+            } else {
+                loginError.style.display = 'block';
+            }
+        });
+    }
 
     // ==========================================
     // PHASE TRANSITION LOGIC
@@ -109,30 +137,82 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // PHASE 2: QUESTIONS
     // ==========================================
+    let isYesDodgingPhase = false;
+    let yesDodgeTimer;
+
     function startQuestions() {
-        btnNo.style.position = 'relative'; // Reset position
-        btnNo.style.left = 'auto';
-        btnNo.style.top = 'auto';
         currentQuestion = 0;
         updateQuestion();
     }
 
     function updateQuestion() {
         questionText.classList.remove('active');
+        
+        // Reset Yes button dodge logic for each question
+        isYesDodgingPhase = true;
+        btnYes.style.transform = '';
+        btnYes.classList.remove('runaway');
+        btnYes.style.position = '';
+        btnYes.style.bottom = '';
+        btnYes.style.right = '';
+        btnYes.style.left = '';
+        btnYes.style.top = '';
+
+        if (yesDodgeTimer) clearTimeout(yesDodgeTimer);
+
+        // After 10 seconds, stop dodging and move to the corner
+        yesDodgeTimer = setTimeout(() => {
+            isYesDodgingPhase = false;
+            
+            // Move to corner (fixed position at bottom right)
+            btnYes.style.transform = '';
+            btnYes.style.position = 'fixed';
+            btnYes.style.bottom = '30px';
+            btnYes.style.right = '30px';
+        }, 10000);
+
         setTimeout(() => {
             questionText.textContent = questions[currentQuestion];
             questionText.classList.add('active');
         }, 200);
     }
 
-    btnYes.addEventListener('click', () => {
+    const moveYesBtn = () => {
+        // Move within a small radius (~100px) from its original position
+        const maxRadius = 100;
+        const angle = Math.random() * 2 * Math.PI;
+        const distance = Math.random() * maxRadius + 20; // Move 20px to 120px away
+        
+        const randomX = Math.cos(angle) * distance;
+        const randomY = Math.sin(angle) * distance;
+
+        btnYes.style.transform = `translate(${randomX}px, ${randomY}px)`;
+    };
+
+    btnYes.addEventListener('mouseover', () => {
+        if (isYesDodgingPhase) {
+            btnYes.classList.add('runaway');
+            moveYesBtn();
+        }
+    });
+
+    btnYes.addEventListener('touchstart', (e) => {
+        if (isYesDodgingPhase) {
+            e.preventDefault(); // Prevent accidental clicking
+            btnYes.classList.add('runaway');
+            moveYesBtn();
+        }
+    });
+
+    btnYes.addEventListener('click', (e) => {
+        if (isYesDodgingPhase) {
+            e.preventDefault();
+            return;
+        }
+
         currentQuestion++;
-        if (currentQuestion < questions.length - 1) {
+        if (currentQuestion < questions.length) {
             updateQuestion();
-        } else if (currentQuestion === questions.length - 1) {
-            // Last question, NO button runs away!
-            updateQuestion();
-            makeBtnNoRunaway();
         } else {
             // Questions done!
             switchPhase(questionContainer, heartGameContainer);
@@ -140,37 +220,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Make the NO button move away when hovered/touched
-    function makeBtnNoRunaway() {
-        btnNo.classList.add('runaway');
-        const moveBtn = () => {
-            const cardRect = document.querySelector('.card').getBoundingClientRect();
-            // Move it somewhere randomly inside the screen bounds, relative to card
-            const maxW = window.innerWidth - 100;
-            const maxH = window.innerHeight - 50;
-            const randomX = Math.random() * maxW - cardRect.left;
-            const randomY = Math.random() * maxH - cardRect.top;
-
-            btnNo.style.transform = `translate(${randomX}px, ${randomY}px)`;
-        };
-
-        btnNo.addEventListener('mouseover', moveBtn);
-        btnNo.addEventListener('touchstart', (e) => {
-            e.preventDefault(); // Prevent accidental clicking
-            moveBtn();
-        });
-
-        btnNo.addEventListener('click', () => {
-            // Just in case they manage to click it
-            alert("Oops! You missed the 'Yes' button! 😜");
-        });
-    }
-
-    // Default No button behavior for earlier questions
+    // Default No button behavior for all questions
     btnNo.addEventListener('click', (e) => {
-        if (!btnNo.classList.contains('runaway')) {
-            alert("Wrong answer! Try again. 😠");
-        }
+        alert("Wrong answer! Try again. 😠");
     });
 
     // ==========================================
@@ -190,21 +242,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const heart = document.createElement('div');
         heart.classList.add('falling-heart');
 
-        // Use text heart to allow CSS coloring across rendering engines
-        heart.textContent = '\u2665\uFE0E';
-
-        const isTarget = Math.random() > 0.6; // 40% chance of skyblue
+        const isTarget = Math.random() > 0.7; // 30% chance of ice cream
 
         if (isTarget) {
             heart.dataset.target = 'true';
-            heart.style.color = '#4facfe'; // Skyblue
-            heart.style.filter = 'drop-shadow(0 5px 15px rgba(79, 172, 254, 0.8))';
+            heart.textContent = '🍦';
+            heart.style.filter = 'drop-shadow(0 5px 15px rgba(255, 255, 255, 0.8))';
         } else {
             heart.dataset.target = 'false';
-            const wrongColors = ['#ff0844', '#fbc2eb', '#f6d365', '#a18cd1', '#ff512f', '#ffffff'];
-            const randomColor = wrongColors[Math.floor(Math.random() * wrongColors.length)];
-            heart.style.color = randomColor;
-            heart.style.filter = `drop-shadow(0 5px 15px ${randomColor})`;
+            heart.textContent = Math.random() > 0.5 ? '🍫' : '🍪';
+            heart.style.filter = 'drop-shadow(0 5px 15px rgba(100, 50, 0, 0.5))';
         }
 
         // Random position and duration
@@ -240,7 +287,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     finishGame();
                 }
             } else {
-                // Wrong heart penalty
+                // Wrong item penalty
                 heart.style.animation = 'none';
                 heart.textContent = '❌';
                 heart.style.filter = 'none';
@@ -276,10 +323,43 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // PHASE 4: FINALE
     // ==========================================
+    let floatingWordsInterval;
+
+    function startFloatingWords() {
+        floatingWordsInterval = setInterval(() => {
+            if (!finaleContainer.classList.contains('active')) return;
+            
+            const wordList = ['love u', 'kN', 'Happy Birthday!', 'Pondatti', 'Umma', '❤️', '😘', '💕'];
+            const wordText = wordList[Math.floor(Math.random() * wordList.length)];
+            
+            const wordEl = document.createElement('div');
+            wordEl.classList.add('floating-word');
+            wordEl.textContent = wordText;
+            
+            const startX = Math.random() * (window.innerWidth - 100);
+            wordEl.style.left = `${startX}px`;
+            
+            const colors = ['#ff0844', '#fbc2eb', '#f6d365', '#a18cd1', '#ff512f', '#ffffff', '#4facfe', '#ff9a9e'];
+            wordEl.style.color = colors[Math.floor(Math.random() * colors.length)];
+            
+            const duration = Math.random() * 4 + 4;
+            wordEl.style.animationDuration = `${duration}s`;
+            const size = Math.random() * 1.5 + 1.2;
+            wordEl.style.fontSize = `${size}rem`;
+            
+            document.body.appendChild(wordEl);
+            
+            setTimeout(() => {
+                if (wordEl.parentNode) wordEl.remove();
+            }, duration * 1000);
+        }, 300);
+    }
+
     function finishGame() {
         switchPhase(heartGameContainer, finaleContainer);
         document.body.classList.add('success-bg');
         setTimeout(fireGrandConfetti, 500);
+        setTimeout(startFloatingWords, 1000);
     }
 
     function fireGrandConfetti() {
@@ -309,6 +389,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
+    // EXTRA BUTTON LOGIC
+    // ==========================================
+    if (extraBtn) {
+        extraBtn.addEventListener('click', () => {
+            if (secretMessage.style.display === 'none' || secretMessage.style.display === '') {
+                secretMessage.style.display = 'block';
+                finalMainText.style.display = 'none';
+                finalSubText.style.display = 'none';
+                extraBtn.textContent = 'Hide Secret';
+            } else {
+                secretMessage.style.display = 'none';
+                finalMainText.style.display = 'block';
+                finalSubText.style.display = 'block';
+                extraBtn.textContent = 'Click for a Surprise!';
+            }
+        });
+    }
+
+    // ==========================================
     // RESET LOGIC
     // ==========================================
     resetBtn.addEventListener('click', () => {
@@ -326,6 +425,18 @@ document.addEventListener('DOMContentLoaded', () => {
         btnNo.classList.remove('runaway');
         btnNo.style.transform = 'none';
 
-        switchPhase(finaleContainer, gameContainer);
+        if (floatingWordsInterval) clearInterval(floatingWordsInterval);
+        document.querySelectorAll('.floating-word').forEach(el => el.remove());
+
+        usernameInput.value = '';
+        passwordInput.value = '';
+        loginError.style.display = 'none';
+
+        if (secretMessage) secretMessage.style.display = 'none';
+        if (finalMainText) finalMainText.style.display = 'block';
+        if (finalSubText) finalSubText.style.display = 'block';
+        if (extraBtn) extraBtn.textContent = 'Click for a Surprise!';
+
+        switchPhase(finaleContainer, loginContainer);
     });
 });
